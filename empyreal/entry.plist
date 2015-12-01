@@ -1,0 +1,10 @@
+{
+    entry = {
+	bundle = empyreal;
+	cell = PSLinkCell;
+	detail = empyrealListController;
+	icon = empyreal.png;
+	isController = 1;
+	label = Empyreal;
+    };
+}
