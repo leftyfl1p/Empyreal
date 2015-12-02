@@ -20,7 +20,7 @@
 			<key>key</key>
 			<string>enabled</string>
 			<key>label</key>
-			<string>Enabled</string>
+			<string>Enable</string>
 		</dict>
 
 		<dict>
