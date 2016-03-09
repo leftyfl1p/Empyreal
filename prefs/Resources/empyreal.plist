@@ -25,6 +25,21 @@
 
 		<dict>
 			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.leftyfl1p.empyreal</string>
+			<key>PostNotification</key>
+			<string>com.leftyfl1p.empyreal/settingschanged</string>
+			<key>key</key>
+			<string>override</string>
+			<key>label</key>
+			<string>Override Apple's Suggestions</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
 			<string>PSLinkCell</string>
 			<key>bundle</key>
 			<string>AppList</string>

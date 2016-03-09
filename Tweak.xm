@@ -6,6 +6,7 @@
 
 static NSString *kSelectedAppID = @"com.saurik.Cydia";
 static BOOL kEnabled = YES;
+static BOOL shouldOverride = NO;
 static NSMutableDictionary *prefs = nil;
 
 %group iOS9
@@ -14,25 +15,29 @@ static NSMutableDictionary *prefs = nil;
 
 - (void)viewDidLoad {
 	%orig;
-
 	if(shouldShow) {
-
 		//app item to represent which application we want	
 		_DECAppItem* appitem = [%c(_DECAppItem) appWithBundleIdentifier:kSelectedAppID];
-
 		//create our new best app suggestion
-		_SBExpertAppSuggestion *expertSuggesiton = [%c(_SBExpertAppSuggestion) new];
-		expertSuggesiton = [expertSuggesiton initWithAppSuggestion:appitem result:nil];
-
+		_SBExpertAppSuggestion *expertSuggesiton = [[%c(_SBExpertAppSuggestion) alloc] initWithAppSuggestion:appitem result:nil];
+			//expertSuggesiton = [expertSuggesiton initWithAppSuggestion:appitem result:nil];
 		//self.bestAppSuggestion = expertSuggesiton;
 		//show the suggestion
 		[self setBestAppSuggestion:expertSuggesiton];
-
 	} else {
 		[self setBestAppSuggestion:nil];
 	}
+}
 
-
+-(void)setBestAppSuggestion:(id)arg1 {
+	if(shouldOverride && shouldShow) {
+		//make sure ios doesn't give replacement
+		if(![((SBBestAppSuggestion *)arg1).bundleIdentifier isEqualToString:kSelectedAppID]) {
+			//if app is different
+			return;
+		}
+	}
+	%orig;
 }
 
 %end
@@ -41,34 +46,34 @@ static NSMutableDictionary *prefs = nil;
 
 - (void)loadView {
 	%orig;
-
 	if (shouldShow) {
 	SBApplication* app = [[%c(SBApplicationController) sharedInstance] applicationWithBundleIdentifier:kSelectedAppID];
-	
 	//this just needs to exist
 	SBBestAppSuggestion *suggestion = [%c(SBBestAppSuggestion) new];
-
 	//show the app on the lockscreen
 	[self.lockScreenBottomLeftAppController setTargetApp:app withAppSuggestion:suggestion];
-	
 	} else {
 		//tweak disabled or no app selected; take the app off
 		[self.lockScreenBottomLeftAppController setTargetApp:nil withAppSuggestion:nil];
 	}
-	
 }
 
 %end
 
-
 %hook SBLockScreenSlideUpToAppController
 
 - (void)setTargetApp:(id)arg1 withAppSuggestion:(id)arg2 {
-	//make sure app isnt removed by system
+	//make sure app isn't removed by system
 	if(arg1 != nil || !kSelectedAppID) {
+		if(shouldOverride && shouldShow) {
+			//make sure ios doesn't give replacement
+			if(![((SBApplication *)arg1).bundleIdentifier isEqualToString:kSelectedAppID]) {
+				//if app is different
+				return;
+			}
+		}
 		%orig;
 	}
-	
 }
 
 %end
@@ -77,7 +82,10 @@ static NSMutableDictionary *prefs = nil;
 
 //custom description text in switcher
 - (id)_descriptionStringForSuggestion:(id)arg1 {
-
+	if(![self.representedAppSuggestion.bundleIdentifier isEqualToString:kSelectedAppID]) {
+		//if app is different
+		return %orig;
+	}
 	return (shouldShow ? @"Empyreal" : %orig); 
 }
 
@@ -92,23 +100,18 @@ static NSMutableDictionary *prefs = nil;
 
 - (void)loadView {
 	%orig;
-
 	//determine if we want to show our app
 	if (shouldShow) {
-
 		//this represents which app we want to show
 		SBApplication* app = [[%c(SBApplicationController) sharedInstance] applicationWithBundleIdentifier:kSelectedAppID];
-		
 		//this just needs to exist
 		LSBestAppSuggestion *suggestion = [%c(LSBestAppSuggestion) new];
-
 		//show the app on the lockscreen
 		[self.lockScreenBottomLeftAppController setTargetApp:app withLSInfo:suggestion];
 	} else {
 		//tweak disabled or no app selected; take the app off
 		[self.lockScreenBottomLeftAppController setTargetApp:nil withLSInfo:nil];
 	}
-	
 }
 
 %end
@@ -118,9 +121,15 @@ static NSMutableDictionary *prefs = nil;
 - (void)setTargetApp:(id)arg1 withLSInfo:(id)arg2 {
 	//make sure app isn't removed by system
 	if(arg1 != nil || !kSelectedAppID) {
+		if(shouldOverride && shouldShow) {
+			//make sure ios doesn't give replacement
+			if(![((SBApplication *)arg1).bundleIdentifier isEqualToString:kSelectedAppID]) {
+				//if app is different
+				return;
+			}
+		}
 		%orig;
 	}
-	
 }
 
 %end
@@ -133,12 +142,14 @@ static void loadPrefs()
 {
     prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kPrefPath];
 	kEnabled = prefs[@"enabled"] ? [prefs[@"enabled"] boolValue] : 1;
+	shouldOverride = prefs[@"override"] ? [prefs[@"override"] boolValue] : 0;
 
 	/*	
 		when there are no apps selected in settings the key is also removed
 		so this is used is to make sure the default option stays until the
 		user opens settings.
 	*/
+	//not sure if I need this check still
 	if ([[NSFileManager defaultManager]fileExistsAtPath:kPrefPath]) {
 		kSelectedAppID = ([prefs objectForKey:@"ALValue-"] ? [prefs objectForKey:@"ALValue-"] : nil);
 	}

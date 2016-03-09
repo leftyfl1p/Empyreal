@@ -1,4 +1,5 @@
 @interface SBApplication : NSObject
+- (id)bundleIdentifier;
 @end
 
 @interface SBApplicationController : NSObject 
@@ -23,6 +24,7 @@
 @end
 
 @interface SBBestAppSuggestion : NSObject
+- (NSString *)bundleIdentifier;
 @end
 
 @interface _SBExpertAppSuggestion : SBBestAppSuggestion
@@ -39,5 +41,6 @@
 @end
 
 @interface SBSwitcherAppSuggestionBottomBannerView : UIView
+@property(readonly, retain, nonatomic) SBBestAppSuggestion *representedAppSuggestion;
 - (id)_descriptionStringForSuggestion:(id)arg1;
 @end
