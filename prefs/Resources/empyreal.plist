@@ -40,6 +40,53 @@
 
 		<dict>
 			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.leftyfl1p.empyreal</string>
+			<key>PostNotification</key>
+			<string>com.leftyfl1p.empyreal/settingschanged</string>
+			<key>key</key>
+			<string>showInLS</string>
+			<key>label</key>
+			<string>Show in Lock Screen</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.leftyfl1p.empyreal</string>
+			<key>PostNotification</key>
+			<string>com.leftyfl1p.empyreal/settingschanged</string>
+			<key>key</key>
+			<string>showInMultitasking</string>
+			<key>label</key>
+			<string>Show in Multitasking</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>autoCaps</key>
+			<string>sentences</string>
+			<key>placeholder</key>
+			<string>Empyreal</string>
+			<key>bestGuess</key>
+			<string>Empyreal</string>
+			<key>PostNotification</key>
+			<string>com.leftyfl1p.empyreal/settingschanged</string>
+			<key>key</key>
+			<string>suggestionName</string>
+			<key>label</key>
+			<string>Suggestion Name:</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
 			<string>PSLinkCell</string>
 			<key>bundle</key>
 			<string>AppList</string>

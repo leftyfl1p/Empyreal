@@ -5,10 +5,10 @@ include $(THEOS)/makefiles/common.mk
 BUNDLE_NAME = empyreal
 empyreal_FILES = empyreal.mm
 empyreal_INSTALL_PATH = /Library/PreferenceBundles
-empyreal_FRAMEWORKS = UIKit Twitter Foundation
+empyreal_FRAMEWORKS = UIKit Social Foundation
 empyreal_LIBRARIES = applist
 empyreal_PRIVATE_FRAMEWORKS = Preferences
-empyreal_LDFLAGS += -Wl,-segalign,4000
+empyreal_CFLAGS = -fobjc-arc
 
 include $(THEOS_MAKE_PATH)/bundle.mk
 

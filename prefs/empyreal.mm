@@ -1,5 +1,5 @@
 #import <Preferences/Preferences.h>
-#import <Twitter/TWTweetComposeViewController.h>
+#import <Social/Social.h>
 
 #define prefPath @"/User/Library/Preferences/com.leftyfl1p.empyreal.plist"
 
@@ -11,9 +11,13 @@
 @implementation empyrealListController
 - (id)specifiers {
 	if(_specifiers == nil) {
-		_specifiers = [[self loadSpecifiersFromPlistName:@"empyreal" target:self] retain];
+		_specifiers = [self loadSpecifiersFromPlistName:@"empyreal" target:self];
 	}
 	return _specifiers;
+}
+
+- (void)_returnKeyPressed:(id)notification {
+    [self.view endEditing:YES];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -40,14 +44,14 @@ settingsView.tintColor = nil;
     [defaults addEntriesFromDictionary:[NSDictionary dictionaryWithContentsOfFile:prefPath]];
     [defaults setObject:value forKey:specifier.properties[@"key"]];
     [defaults writeToFile:prefPath atomically:YES];
-    CFStringRef toPost = (CFStringRef)specifier.properties[@"PostNotification"];
+    CFStringRef toPost = (CFStringRef)CFBridgingRetain(specifier.properties[@"PostNotification"]);
     if(toPost) CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), toPost, NULL, NULL, YES);
 }
 
 - (void)loadView {
     [super loadView];
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCompose target:self action:@selector(tweet:)];
-    [UISwitch appearanceWhenContainedIn:self.class, nil].onTintColor = [UIColor colorWithRed:0 green:0.478 blue:1 alpha:1]; /*#007aff*/
+    [UISwitch appearanceWhenContainedInInstancesOfClasses:@[self.class]].onTintColor = [UIColor colorWithRed:0 green:0.478 blue:1 alpha:1]; /*#007aff*/
 }
 
 - (void)openTwitter {
@@ -69,10 +73,9 @@ settingsView.tintColor = nil;
 }
 
 - (void)tweet:(id)sender {
-    TWTweetComposeViewController *tweetController = [[TWTweetComposeViewController alloc] init];
+    SLComposeViewController *tweetController = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeTwitter];
     [tweetController setInitialText:@"I'm using the tweak #Empyreal by @leftyfl1p!"];
     [self.navigationController presentViewController:tweetController animated:YES completion:nil];
-    [tweetController release];
 }
 
 @end

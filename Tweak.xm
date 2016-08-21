@@ -7,6 +7,9 @@
 static NSString *kSelectedAppID = @"com.saurik.Cydia";
 static BOOL kEnabled = YES;
 static BOOL shouldOverride = NO;
+static BOOL showInLS = YES;
+static BOOL showInMultitasking = YES;
+static NSString *suggestionName = @"Empyreal";
 static NSMutableDictionary *prefs = nil;
 
 %group iOS9
@@ -15,7 +18,7 @@ static NSMutableDictionary *prefs = nil;
 
 - (void)viewDidLoad {
 	%orig;
-	if(shouldShow) {
+	if(shouldShow && showInMultitasking) {
 		//app item to represent which application we want	
 		_DECAppItem* appitem = [%c(_DECAppItem) appWithBundleIdentifier:kSelectedAppID];
 		//create our new best app suggestion
@@ -30,7 +33,7 @@ static NSMutableDictionary *prefs = nil;
 }
 
 -(void)setBestAppSuggestion:(id)arg1 {
-	if(shouldOverride && shouldShow) {
+	if(shouldOverride && shouldShow && showInMultitasking) {
 		//make sure ios doesn't give replacement
 		if(![((SBBestAppSuggestion *)arg1).bundleIdentifier isEqualToString:kSelectedAppID]) {
 			//if app is different
@@ -46,7 +49,7 @@ static NSMutableDictionary *prefs = nil;
 
 - (void)loadView {
 	%orig;
-	if (shouldShow) {
+	if (shouldShow && showInLS) {
 	SBApplication* app = [[%c(SBApplicationController) sharedInstance] applicationWithBundleIdentifier:kSelectedAppID];
 	//this just needs to exist
 	SBBestAppSuggestion *suggestion = [%c(SBBestAppSuggestion) new];
@@ -65,7 +68,7 @@ static NSMutableDictionary *prefs = nil;
 - (void)setTargetApp:(id)arg1 withAppSuggestion:(id)arg2 {
 	//make sure app isn't removed by system
 	if(arg1 != nil || !kSelectedAppID) {
-		if(shouldOverride && shouldShow) {
+		if(shouldOverride && shouldShow && showInLS) {
 			//make sure ios doesn't give replacement
 			if(![((SBApplication *)arg1).bundleIdentifier isEqualToString:kSelectedAppID]) {
 				//if app is different
@@ -86,7 +89,7 @@ static NSMutableDictionary *prefs = nil;
 		//if app is different
 		return %orig;
 	}
-	return (shouldShow ? @"Empyreal" : %orig); 
+	return ((shouldShow && showInLS)? suggestionName : %orig);
 }
 
 %end
@@ -101,7 +104,7 @@ static NSMutableDictionary *prefs = nil;
 - (void)loadView {
 	%orig;
 	//determine if we want to show our app
-	if (shouldShow) {
+	if (shouldShow && showInLS) {
 		//this represents which app we want to show
 		SBApplication* app = [[%c(SBApplicationController) sharedInstance] applicationWithBundleIdentifier:kSelectedAppID];
 		//this just needs to exist
@@ -121,7 +124,7 @@ static NSMutableDictionary *prefs = nil;
 - (void)setTargetApp:(id)arg1 withLSInfo:(id)arg2 {
 	//make sure app isn't removed by system
 	if(arg1 != nil || !kSelectedAppID) {
-		if(shouldOverride && shouldShow) {
+		if(shouldOverride && shouldShow && showInLS) {
 			//make sure ios doesn't give replacement
 			if(![((SBApplication *)arg1).bundleIdentifier isEqualToString:kSelectedAppID]) {
 				//if app is different
@@ -143,6 +146,9 @@ static void loadPrefs()
     prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kPrefPath];
 	kEnabled = prefs[@"enabled"] ? [prefs[@"enabled"] boolValue] : 1;
 	shouldOverride = prefs[@"override"] ? [prefs[@"override"] boolValue] : 0;
+	showInLS = prefs[@"showInLS"] ? [prefs[@"showInLS"] boolValue] : 1;
+	showInMultitasking = prefs[@"showInMultitasking"] ? [prefs[@"showInMultitasking"] boolValue] : 1;
+	suggestionName = [prefs[@"suggestionName"] length] != 0 ? prefs[@"suggestionName"] : @"Empyreal";
 
 	/*	
 		when there are no apps selected in settings the key is also removed

@@ -1,7 +1,7 @@
 Package: com.leftyfl1p.empyreal
 Name: Empyreal
 Depends: mobilesubstrate, applist
-Version: 1.1
+Version: 1.2.1
 Architecture: iphoneos-arm
 Description: Custom Suggested Apps
 Maintainer: leftyfl1p
