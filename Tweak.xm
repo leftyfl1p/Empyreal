@@ -1,6 +1,10 @@
 #import "Headers.h"
 
+#define isiOS10Up (kCFCoreFoundationVersionNumber >= 1333.2)
 #define isiOS9Up (kCFCoreFoundationVersionNumber >= 1217.11)
+#define isiOS9 (kCFCoreFoundationVersionNumber >= 1217.11 && kCFCoreFoundationVersionNumber < 1333.2)
+#define isiOS8 (kCFCoreFoundationVersionNumber >= 1129.15 && kCFCoreFoundationVersionNumber < 1217.11)
+
 #define kPrefPath @"/User/Library/Preferences/com.leftyfl1p.empyreal.plist"
 #define shouldShow (kEnabled && kSelectedAppID)
 
@@ -12,7 +16,52 @@ static BOOL showInMultitasking = YES;
 static NSString *suggestionName = @"Empyreal";
 static NSMutableDictionary *prefs = nil;
 
-%group iOS9
+%group iOS10
+
+%hook SBDashBoardViewController
+
+- (void)loadView {
+	%orig;
+	if (shouldShow && showInLS) {
+		SBApplication *app = [[%c(SBApplicationController) sharedInstance] applicationWithBundleIdentifier:kSelectedAppID];
+		//this just needs to exist
+		SBBestAppSuggestion *suggestion = [%c(SBBestAppSuggestion) new];
+		//show the app on the lockscreen
+		//[self.lockScreenBottomLeftAppController setTargetApp:app withAppSuggestion:suggestion];
+		SBDashBoardSlideUpToAppController *_slideUpToAppController = MSHookIvar<SBDashBoardSlideUpToAppController *>(self, "_slideUpToAppController");
+		[_slideUpToAppController _setTargetApp:app withAppSuggestion:suggestion];
+
+	} else {
+		//tweak disabled or no app selected; take the app off
+		SBDashBoardSlideUpToAppController *_slideUpToAppController = MSHookIvar<SBDashBoardSlideUpToAppController *>(self, "_slideUpToAppController");
+		[_slideUpToAppController _setTargetApp:nil withAppSuggestion:nil];
+	}
+}
+
+%end
+
+%hook SBDashBoardSlideUpToAppController
+
+-(void)_setTargetApp:(id)arg1 withAppSuggestion:(id)arg2 {
+	//make sure app isn't removed by system
+	if(arg1 != nil || !kSelectedAppID) {
+		if(shouldOverride && shouldShow && showInLS) {
+			//make sure ios doesn't give replacement
+			if(![((SBApplication *)arg1).bundleIdentifier isEqualToString:kSelectedAppID]) {
+				//if app is different
+				return;
+			}
+		}
+		%orig;
+	}
+}
+
+%end
+
+%end // iOS10
+
+//works on iOS 9 & 10
+%group iOS9Up
 
 %hook SBDeckSwitcherViewController
 
@@ -45,16 +94,34 @@ static NSMutableDictionary *prefs = nil;
 
 %end
 
+%hook SBSwitcherAppSuggestionBottomBannerView
+
+//custom description text in switcher
+- (id)_descriptionStringForSuggestion:(id)arg1 {
+	if(![self.representedAppSuggestion.bundleIdentifier isEqualToString:kSelectedAppID]) {
+		//if app is different
+		return %orig;
+	}
+	return ((shouldShow && showInLS)? suggestionName : %orig);
+}
+
+%end
+
+%end
+
+
+%group iOS9
+
 %hook SBLockScreenViewController
 
 - (void)loadView {
 	%orig;
 	if (shouldShow && showInLS) {
-	SBApplication* app = [[%c(SBApplicationController) sharedInstance] applicationWithBundleIdentifier:kSelectedAppID];
-	//this just needs to exist
-	SBBestAppSuggestion *suggestion = [%c(SBBestAppSuggestion) new];
-	//show the app on the lockscreen
-	[self.lockScreenBottomLeftAppController setTargetApp:app withAppSuggestion:suggestion];
+		SBApplication* app = [[%c(SBApplicationController) sharedInstance] applicationWithBundleIdentifier:kSelectedAppID];
+		//this just needs to exist
+		SBBestAppSuggestion *suggestion = [%c(SBBestAppSuggestion) new];
+		//show the app on the lockscreen
+		[self.lockScreenBottomLeftAppController setTargetApp:app withAppSuggestion:suggestion];
 	} else {
 		//tweak disabled or no app selected; take the app off
 		[self.lockScreenBottomLeftAppController setTargetApp:nil withAppSuggestion:nil];
@@ -77,19 +144,6 @@ static NSMutableDictionary *prefs = nil;
 		}
 		%orig;
 	}
-}
-
-%end
-
-%hook SBSwitcherAppSuggestionBottomBannerView
-
-//custom description text in switcher
-- (id)_descriptionStringForSuggestion:(id)arg1 {
-	if(![self.representedAppSuggestion.bundleIdentifier isEqualToString:kSelectedAppID]) {
-		//if app is different
-		return %orig;
-	}
-	return ((shouldShow && showInLS)? suggestionName : %orig);
 }
 
 %end
@@ -169,9 +223,11 @@ static void receivedNotification(CFNotificationCenterRef center, void *observer,
 }
 
 %ctor {
-
 	//figure out which group to load
-	isiOS9Up ? (%init(iOS9)) : (%init(iOS8));
+	if(isiOS8) %init(iOS8);
+	if(isiOS9) %init(iOS9);
+	if(isiOS9Up) %init(iOS9Up);
+	if(isiOS10Up) %init(iOS10);
 
 	CFNotificationCenterAddObserver(
 		CFNotificationCenterGetDarwinNotifyCenter(),

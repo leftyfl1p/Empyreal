@@ -44,3 +44,13 @@
 @property(readonly, retain, nonatomic) SBBestAppSuggestion *representedAppSuggestion;
 - (id)_descriptionStringForSuggestion:(id)arg1;
 @end
+
+//iOS 10
+@interface SBDashBoardSlideUpToAppController
+-(void)_setTargetApp:(id)arg1 withAppSuggestion:(id)arg2;
+@end
+
+@interface SBDashBoardViewController {
+	SBDashBoardSlideUpToAppController* _slideUpToAppController;
+}
+@end
